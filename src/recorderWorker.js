@@ -31,7 +31,7 @@ this.onmessage = function (e) {
 			record(e.data.buffer);
 			break;
 		case 'exportWAV':
-			exportWAV(e.data.type, e.data.mono, e.data.reverse);
+			exportWAV(e.data.type, e.data.mono, e.data.reverse, e.data.speed);
 			break;
 		case 'getBuffers':
 			getBuffers();
@@ -52,13 +52,28 @@ function record(inputBuffer) {
 	recLength += inputBuffer[0].length;
 }
 
-function exportWAV(type, mono, reverse) {
+function exportWAV(type, mono, reverse, speed) {
 	var bufferL = mergeBuffers(recBuffersL, recLength);
 	var bufferR = mergeBuffers(recBuffersR, recLength);
+	
+	//Speed changed, modify buffers
+	if(speed != 1) {
+		let resL = new Float32Array(Math.floor(bufferL.length/speed));
+		let resR = new Float32Array(Math.floor(bufferR.length/speed));
+		for (let i = 0; i < resL.length; i++) {
+			resL[i] = bufferL[Math.round(i*speed)];
+			resR[i] = bufferR[Math.round(i*speed)];
+		}
+		bufferL = resL;
+		bufferR = resR;
+	}
+
+	//Reverse buffers
 	if (reverse) {
 		bufferL.reverse();
 		bufferR.reverse();
 	}
+
 	var dataview;
 	if (mono) {
 		dataview = encodeWAV(bufferL, true);

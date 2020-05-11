@@ -54,7 +54,7 @@ export default class Recorder {
 		this.worker.postMessage({ command: 'getBuffers' })
 	}
 
-	public exportWAV(callback:Function, type:string = "audio/wav", mono:boolean = false, reverse:boolean = false): void {
+	public exportWAV(callback:Function, type:string = "audio/wav", mono:boolean = false, reverse:boolean = false, speed:number = 1): void {
 		if(callback) this.currCallback = callback;
 		if (!this.currCallback) throw new Error("No callback have been defined");
 		
@@ -62,8 +62,15 @@ export default class Recorder {
 			command: 'exportWAV',
 			type,
 			mono,
-			reverse
+			speed,
+			reverse,
 		});
+	}
+
+	public dispose(): void {
+		this.source.disconnect(this.node);
+		this.node.disconnect(this.context.destination);
+		this.worker.terminate();
 	}
 
 
